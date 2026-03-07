@@ -1,7 +1,12 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'
 import { useTheme } from './utils/ThemeContext'
+import { clearToken, getToken } from './utils/auth'
 import Home from './pages/Home'
 import BusinessDetail from './pages/BusinessDetail'
+import Dashboard from './pages/Dashboard'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
 
 function ThemeToggle() {
   const { dark, toggle } = useTheme()
@@ -26,7 +31,14 @@ function ThemeToggle() {
   )
 }
 
-function Layout({ children }) {
+function Layout({ children, isAuthenticated, onLogout }) {
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    onLogout()
+    navigate('/')
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-neutral-950 transition-colors duration-300">
       {/* Nav */}
@@ -42,15 +54,38 @@ function Layout({ children }) {
               PEI <span className="text-red-600">Gems</span>
             </span>
           </Link>
-          <div className="flex items-center gap-5">
-            <a
-              href="https://peigems.ca"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors hidden sm:block"
-            >
-              About
-            </a>
+          <div className="flex items-center gap-4 sm:gap-5">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors hidden sm:block"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
             <ThemeToggle />
           </div>
         </div>
@@ -108,16 +143,76 @@ function Layout({ children }) {
   )
 }
 
+function ProtectedRoute({ isAuthenticated, children }) {
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
+
+function PublicOnlyRoute({ isAuthenticated, children }) {
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  return children
+}
+
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getToken()))
+
+  useEffect(() => {
+    const onStorage = () => setIsAuthenticated(Boolean(getToken()))
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
+
+  const handleAuthSuccess = () => setIsAuthenticated(true)
+  const handleLogout = () => {
+    clearToken()
+    setIsAuthenticated(false)
+  }
+
   return (
     <BrowserRouter>
       <Routes>
         <Route
           path="/"
           element={
-            <Layout>
+            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
               <Home />
             </Layout>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <PublicOnlyRoute isAuthenticated={isAuthenticated}>
+              <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+                <Login onAuthSuccess={handleAuthSuccess} />
+              </Layout>
+            </PublicOnlyRoute>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicOnlyRoute isAuthenticated={isAuthenticated}>
+              <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+                <Signup onAuthSuccess={handleAuthSuccess} />
+              </Layout>
+            </PublicOnlyRoute>
           }
         />
         <Route path="/business/:id" element={<BusinessDetail />} />
