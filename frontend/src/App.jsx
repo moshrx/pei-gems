@@ -186,11 +186,11 @@ export default function App() {
           }
         />
         <Route
-          path="/dashboard"
+          path="/dashboard/*"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
               <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
-                <Dashboard />
+                <Dashboard onLogout={handleLogout} />
               </Layout>
             </ProtectedRoute>
           }

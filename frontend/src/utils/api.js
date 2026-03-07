@@ -40,6 +40,46 @@ export async function signupUser({ email, password, businessName }) {
   })
 }
 
+export async function fetchMe() {
+  return apiRequest('/api/auth/me')
+}
+
+export async function fetchMyBusiness() {
+  return apiRequest('/api/businesses/owner/me')
+}
+
+export async function updateBusiness(id, data) {
+  return apiRequest(`/api/businesses/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function respondToReview(reviewId, text) {
+  return apiRequest(`/api/reviews/${reviewId}/response`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
+}
+
+export async function changePassword({ currentPassword, newPassword }) {
+  return apiRequest('/api/auth/password', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
+}
+
+export async function changeEmail({ newEmail, password }) {
+  return apiRequest('/api/auth/email', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ newEmail, password }),
+  })
+}
+
 export async function fetchBusinesses(params = {}) {
   const queryString = new URLSearchParams(
     Object.fromEntries(Object.entries(params).filter(([, v]) => v))

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Review = require('../models/Review');
 const Business = require('../models/Business');
+const auth = require('../middleware/auth');
 
 // GET reviews for a business
 router.get('/business/:businessId', async (req, res) => {
@@ -41,6 +42,34 @@ router.post('/', async (req, res) => {
     res.status(201).json(review);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// POST business owner response to a review (protected)
+router.post('/:id/response', auth, async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ error: 'Response text is required.' });
+    }
+
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ error: 'Review not found.' });
+    }
+
+    // Verify the user owns the business this review belongs to
+    const business = await Business.findById(review.businessId);
+    if (!business || !business.owner || business.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'You can only respond to reviews on your own business.' });
+    }
+
+    review.businessResponse = { text: text.trim(), date: new Date() };
+    await review.save();
+
+    res.json(review);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
