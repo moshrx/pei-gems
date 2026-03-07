@@ -33,8 +33,10 @@ app.get('/api/health', (req, res) => {
 });
 
 // Import routes
+const authRoutes = require('./routes/auth');
 const businessRoutes = require('./routes/businesses');
 const reviewRoutes = require('./routes/reviews');
+app.use('/api/auth', authRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/reviews', reviewRoutes);
 
