@@ -12,10 +12,15 @@ const app = express();
 app.use(
   cors({
     origin: (origin, callback) => {
-      const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173')
+      // Allow all localhost origins in development
+      if (!origin || origin.startsWith('http://localhost:')) {
+        return callback(null, true);
+      }
+      const allowed = (process.env.CORS_ORIGIN || '')
         .split(',')
-        .map((s) => s.trim());
-      if (!origin || allowed.includes(origin)) callback(null, true);
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (allowed.includes(origin)) callback(null, true);
       else callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
