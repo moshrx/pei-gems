@@ -17,6 +17,16 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Business',
   },
+  subscription: {
+    plan: {
+      type: String,
+      enum: ['free', 'basic', 'pro'],
+      default: 'free',
+    },
+    stripeCustomerId: String,
+    stripeSubscriptionId: String,
+    currentPeriodEnd: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -11,10 +11,21 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      const allowed = (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:5173')
+        .split(',')
+        .map((s) => s.trim());
+      if (!origin || allowed.includes(origin)) callback(null, true);
+      else callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   })
 );
+
+// Webhook needs raw body — must be registered BEFORE express.json()
+const billingRoutes = require('./routes/billing');
+app.use('/api/billing/webhook', express.raw({ type: 'application/json' }), billingRoutes.webhookHandler);
+
 app.use(express.json());
 
 // MongoDB Connection
@@ -39,6 +50,7 @@ const reviewRoutes = require('./routes/reviews');
 app.use('/api/auth', authRoutes);
 app.use('/api/businesses', businessRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/billing', billingRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
