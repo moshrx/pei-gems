@@ -133,3 +133,19 @@ export async function postReview(reviewData) {
     body: JSON.stringify(reviewData),
   })
 }
+
+export async function createCheckoutSession({ plan }) {
+  return apiRequest('/api/billing/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ plan }),
+  })
+}
+
+export async function fetchSubscription() {
+  return apiRequest('/api/billing/subscription')
+}
+
+export async function cancelSubscription() {
+  return apiRequest('/api/billing/subscription', { method: 'DELETE' })
+}

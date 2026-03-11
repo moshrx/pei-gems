@@ -7,6 +7,10 @@ import BusinessDetail from './pages/BusinessDetail'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import Pricing from './pages/Pricing'
+import CheckoutSuccess from './pages/CheckoutSuccess'
+import CheckoutCancel from './pages/CheckoutCancel'
+import AddReview from './pages/AddReview'
 
 function ThemeToggle() {
   const { dark, toggle } = useTheme()
@@ -55,6 +59,12 @@ function Layout({ children, isAuthenticated, onLogout }) {
             </span>
           </Link>
           <div className="flex items-center gap-4 sm:gap-5">
+            <Link
+              to="/pricing"
+              className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors hidden sm:block"
+            >
+              Pricing
+            </Link>
             {isAuthenticated ? (
               <>
                 <Link
@@ -220,6 +230,38 @@ export default function App() {
           element={
             <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
               <BusinessDetail />
+            </Layout>
+          }
+        />
+        <Route
+          path="/pricing"
+          element={
+            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+              <Pricing />
+            </Layout>
+          }
+        />
+        <Route
+          path="/checkout/success"
+          element={
+            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+              <CheckoutSuccess />
+            </Layout>
+          }
+        />
+        <Route
+          path="/checkout/cancel"
+          element={
+            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+              <CheckoutCancel />
+            </Layout>
+          }
+        />
+        <Route
+          path="/review/:businessId"
+          element={
+            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+              <AddReview />
             </Layout>
           }
         />
