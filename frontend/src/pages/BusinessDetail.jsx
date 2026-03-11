@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import { fetchBusiness, fetchReviews } from '../utils/api'
 import ReviewCard from '../components/ReviewCard'
 import ReviewForm from '../components/ReviewForm'
@@ -16,10 +16,12 @@ const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'satur
 
 export default function BusinessDetail() {
   const { id } = useParams()
+  const location = useLocation()
   const [business, setBusiness] = useState(null)
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const reviewSuccess = new URLSearchParams(location.search).get('reviewed') === '1'
 
   const loadData = async () => {
     try {
@@ -179,13 +181,30 @@ export default function BusinessDetail() {
         </div>
 
         {/* Reviews Section */}
+        {reviewSuccess && (
+          <div className="mb-6 rounded-xl border border-emerald-200 dark:border-emerald-700/50 bg-emerald-50 dark:bg-emerald-600/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
+            Thanks for your review! It may take a moment to appear.
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Review List */}
           <div className="lg:col-span-3">
             <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-6">
-              <h2 className="font-display text-lg font-bold text-gray-900 dark:text-white mb-1">
-                Reviews <span className="text-gray-400 dark:text-neutral-600 font-normal">({reviews.length})</span>
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display text-lg font-bold text-gray-900 dark:text-white">
+                  Reviews <span className="text-gray-400 dark:text-neutral-600 font-normal">({reviews.length})</span>
+                </h2>
+                <Link
+                  to={`/review/${id}`}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Write a Review
+                </Link>
+              </div>
               {reviews.length === 0 ? (
                 <p className="text-gray-400 dark:text-neutral-600 text-sm py-10 text-center">
                   No reviews yet. Be the first to review!
