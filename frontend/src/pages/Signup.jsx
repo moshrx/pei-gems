@@ -9,7 +9,6 @@ export default function Signup({ onAuthSuccess }) {
     email: '',
     password: '',
     confirmPassword: '',
-    businessName: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -42,11 +41,10 @@ export default function Signup({ onAuthSuccess }) {
       const data = await signupUser({
         email: form.email,
         password: form.password,
-        businessName: form.businessName,
       })
       saveToken(data.token)
       onAuthSuccess?.()
-      navigate('/')
+      navigate('/dashboard/create-business')
     } catch (err) {
       setError(err.message || 'Failed to create account.')
     } finally {
@@ -100,20 +98,6 @@ export default function Signup({ onAuthSuccess }) {
               onChange={(e) => updateForm('confirmPassword', e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-red-500"
               placeholder="Re-enter password"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="businessName" className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5">
-              Business name (optional)
-            </label>
-            <input
-              id="businessName"
-              type="text"
-              value={form.businessName}
-              onChange={(e) => updateForm('businessName', e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-              placeholder="Your business"
             />
           </div>
 

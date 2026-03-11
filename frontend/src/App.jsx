@@ -215,7 +215,14 @@ export default function App() {
             </PublicOnlyRoute>
           }
         />
-        <Route path="/business/:id" element={<BusinessDetail />} />
+        <Route
+          path="/business/:id"
+          element={
+            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+              <BusinessDetail />
+            </Layout>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )

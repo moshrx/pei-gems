@@ -8,6 +8,8 @@ export default function DashboardHome() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const [noBusiness, setNoBusiness] = useState(false)
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -16,7 +18,11 @@ export default function DashboardHome() {
         const revs = await fetchReviews(biz._id)
         setReviews(revs)
       } catch (err) {
-        setError(err.message)
+        if (err.message === 'No business found for this account.') {
+          setNoBusiness(true)
+        } else {
+          setError(err.message)
+        }
       } finally {
         setLoading(false)
       }
@@ -32,17 +38,33 @@ export default function DashboardHome() {
     )
   }
 
-  if (error) {
+  if (noBusiness) {
     return (
       <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-8 text-center shadow-xl shadow-black/5 dark:shadow-black/20">
         <div className="w-16 h-16 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
           </svg>
         </div>
-        <h2 className="text-xl font-display font-bold text-gray-900 dark:text-white mb-2">No Business Linked</h2>
-        <p className="text-gray-500 dark:text-neutral-400 text-sm">{error}</p>
-        <p className="text-gray-400 dark:text-neutral-500 text-xs mt-2">Contact support to link a business to your account.</p>
+        <h2 className="text-xl font-display font-bold text-gray-900 dark:text-white mb-2">No Business Yet</h2>
+        <p className="text-gray-500 dark:text-neutral-400 text-sm mb-4">Set up your business to start managing your PEI Gems listing.</p>
+        <Link
+          to="/dashboard/create-business"
+          className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl px-6 py-2.5 transition-colors text-sm"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Create Your Business
+        </Link>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-8 text-center shadow-xl shadow-black/5 dark:shadow-black/20">
+        <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
       </div>
     )
   }

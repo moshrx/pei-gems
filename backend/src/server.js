@@ -47,6 +47,23 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+const HOST = process.env.HOST || '127.0.0.1';
+
+const server = app.listen(PORT, HOST, () => {
+  console.log(`🚀 Server running on http://${HOST}:${PORT}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Change PORT in your .env or stop the other process.`);
+    process.exit(1);
+  }
+
+  if (err.code === 'EPERM') {
+    console.error(`❌ Permission denied while binding ${HOST}:${PORT}. Try a different HOST/PORT in your .env.`);
+    process.exit(1);
+  }
+
+  console.error('❌ Server failed to start:', err.message);
+  process.exit(1);
 });

@@ -5,6 +5,7 @@ import DashboardProfile from './dashboard/DashboardProfile'
 import DashboardReviews from './dashboard/DashboardReviews'
 import DashboardPhotos from './dashboard/DashboardPhotos'
 import DashboardSettings from './dashboard/DashboardSettings'
+import CreateBusiness from './dashboard/CreateBusiness'
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Overview', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4', end: true },
@@ -58,50 +59,58 @@ export default function Dashboard({ onLogout }) {
 
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 page-enter">
-      <div className="flex gap-8">
-        {/* Desktop sidebar */}
-        <aside className="hidden lg:block w-56 flex-shrink-0">
-          <div className="sticky top-24 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-4 shadow-xl shadow-black/5 dark:shadow-black/20">
-            {sidebar}
-          </div>
-        </aside>
+      <Routes>
+        {/* Create business — standalone, no sidebar */}
+        <Route path="create-business" element={<CreateBusiness />} />
 
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="lg:hidden fixed bottom-6 right-6 z-50 w-12 h-12 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg shadow-red-600/30 flex items-center justify-center transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            {mobileOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        {/* All other dashboard pages — with sidebar */}
+        <Route path="*" element={
+          <div className="flex gap-8">
+            {/* Desktop sidebar */}
+            <aside className="hidden lg:block w-56 flex-shrink-0">
+              <div className="sticky top-24 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-4 shadow-xl shadow-black/5 dark:shadow-black/20">
+                {sidebar}
+              </div>
+            </aside>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="lg:hidden fixed bottom-6 right-6 z-50 w-12 h-12 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg shadow-red-600/30 flex items-center justify-center transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                {mobileOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+
+            {/* Mobile sidebar overlay */}
+            {mobileOpen && (
+              <>
+                <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setMobileOpen(false)} />
+                <div className="lg:hidden fixed bottom-20 right-6 z-50 w-56 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-4 shadow-2xl">
+                  {sidebar}
+                </div>
+              </>
             )}
-          </svg>
-        </button>
 
-        {/* Mobile sidebar overlay */}
-        {mobileOpen && (
-          <>
-            <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setMobileOpen(false)} />
-            <div className="lg:hidden fixed bottom-20 right-6 z-50 w-56 bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-4 shadow-2xl">
-              {sidebar}
+            {/* Main content */}
+            <div className="flex-1 min-w-0">
+              <Routes>
+                <Route index element={<DashboardHome />} />
+                <Route path="profile" element={<DashboardProfile />} />
+                <Route path="reviews" element={<DashboardReviews />} />
+                <Route path="photos" element={<DashboardPhotos />} />
+                <Route path="settings" element={<DashboardSettings />} />
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
             </div>
-          </>
-        )}
-
-        {/* Main content */}
-        <div className="flex-1 min-w-0">
-          <Routes>
-            <Route index element={<DashboardHome />} />
-            <Route path="profile" element={<DashboardProfile />} />
-            <Route path="reviews" element={<DashboardReviews />} />
-            <Route path="photos" element={<DashboardPhotos />} />
-            <Route path="settings" element={<DashboardSettings />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </div>
-      </div>
+          </div>
+        } />
+      </Routes>
     </section>
   )
 }

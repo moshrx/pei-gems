@@ -24,7 +24,7 @@ export default function Login({ onAuthSuccess }) {
       const data = await loginUser({ email, password })
       saveToken(data.token)
       onAuthSuccess?.()
-      navigate('/')
+      navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Failed to log in.')
     } finally {

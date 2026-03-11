@@ -32,11 +32,11 @@ export async function loginUser({ email, password }) {
   })
 }
 
-export async function signupUser({ email, password, businessName }) {
+export async function signupUser({ email, password }) {
   return apiRequest('/api/auth/signup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, businessName }),
+    body: JSON.stringify({ email, password }),
   })
 }
 
@@ -46,6 +46,36 @@ export async function fetchMe() {
 
 export async function fetchMyBusiness() {
   return apiRequest('/api/businesses/owner/me')
+}
+
+export async function createMyBusiness(data) {
+  return apiRequest('/api/businesses/mine', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function addBusinessPhoto(businessId, imageUrl) {
+  return apiRequest(`/api/businesses/${businessId}/photos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl }),
+  })
+}
+
+export async function deleteBusinessPhoto(businessId, photoId) {
+  return apiRequest(`/api/businesses/${businessId}/photos/${photoId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function reorderBusinessPhotos(businessId, photos) {
+  return apiRequest(`/api/businesses/${businessId}/photos/reorder`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photos }),
+  })
 }
 
 export async function updateBusiness(id, data) {
