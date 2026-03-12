@@ -13,7 +13,7 @@ const CATEGORIES = [
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
-export default function CreateBusiness() {
+export default function CreateBusiness({ onBusinessCreated }) {
   const navigate = useNavigate()
   const [form, setForm] = useState({
     name: '',
@@ -51,6 +51,7 @@ export default function CreateBusiness() {
     setLoading(true)
     try {
       await createMyBusiness(form)
+      if (onBusinessCreated) onBusinessCreated()
       navigate('/dashboard')
     } catch (err) {
       setError(err.message || 'Failed to create business.')

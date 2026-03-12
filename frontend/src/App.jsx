@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom'
 import { useTheme } from './utils/ThemeContext'
 import { clearToken, getToken } from './utils/auth'
+import { fetchMe } from './utils/api'
 import Home from './pages/Home'
 import BusinessDetail from './pages/BusinessDetail'
 import Dashboard from './pages/Dashboard'
@@ -35,7 +36,7 @@ function ThemeToggle() {
   )
 }
 
-function Layout({ children, isAuthenticated, onLogout }) {
+function Layout({ children, isAuthenticated, isBusinessOwner, onLogout }) {
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -59,12 +60,14 @@ function Layout({ children, isAuthenticated, onLogout }) {
             </span>
           </Link>
           <div className="flex items-center gap-4 sm:gap-5">
-            <Link
-              to="/pricing"
-              className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors hidden sm:block"
-            >
-              Pricing
-            </Link>
+            {isAuthenticated && isBusinessOwner && (
+              <Link
+                to="/pricing"
+                className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors hidden sm:block"
+              >
+                Pricing
+              </Link>
+            )}
             {isAuthenticated ? (
               <>
                 <Link
@@ -164,18 +167,37 @@ function PublicOnlyRoute({ isAuthenticated, children }) {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(Boolean(getToken()))
+  const [isBusinessOwner, setIsBusinessOwner] = useState(false)
 
+  // Sync auth state across tabs
   useEffect(() => {
     const onStorage = () => setIsAuthenticated(Boolean(getToken()))
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
+  // When user becomes authenticated, check if they have a business
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchMe()
+        .then((data) => setIsBusinessOwner(Boolean(data.user?.businessId)))
+        .catch(() => setIsBusinessOwner(false))
+    } else {
+      setIsBusinessOwner(false)
+    }
+  }, [isAuthenticated])
+
   const handleAuthSuccess = () => setIsAuthenticated(true)
   const handleLogout = () => {
     clearToken()
     setIsAuthenticated(false)
+    setIsBusinessOwner(false)
   }
+
+  // Called by Dashboard after a business is created in the current session
+  const handleBusinessCreated = () => setIsBusinessOwner(true)
+
+  const layoutProps = { isAuthenticated, isBusinessOwner, onLogout: handleLogout }
 
   return (
     <BrowserRouter>
@@ -183,7 +205,7 @@ export default function App() {
         <Route
           path="/"
           element={
-            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+            <Layout {...layoutProps}>
               <Home />
             </Layout>
           }
@@ -192,8 +214,8 @@ export default function App() {
           path="/dashboard/*"
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
-                <Dashboard onLogout={handleLogout} />
+              <Layout {...layoutProps}>
+                <Dashboard onLogout={handleLogout} onBusinessCreated={handleBusinessCreated} />
               </Layout>
             </ProtectedRoute>
           }
@@ -202,7 +224,7 @@ export default function App() {
           path="/login"
           element={
             <PublicOnlyRoute isAuthenticated={isAuthenticated}>
-              <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+              <Layout {...layoutProps}>
                 <Login onAuthSuccess={handleAuthSuccess} />
               </Layout>
             </PublicOnlyRoute>
@@ -212,7 +234,7 @@ export default function App() {
           path="/signup"
           element={
             <PublicOnlyRoute isAuthenticated={isAuthenticated}>
-              <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+              <Layout {...layoutProps}>
                 <Signup onAuthSuccess={handleAuthSuccess} />
               </Layout>
             </PublicOnlyRoute>
@@ -221,7 +243,7 @@ export default function App() {
         <Route
           path="/business/:id"
           element={
-            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+            <Layout {...layoutProps}>
               <BusinessDetail />
             </Layout>
           }
@@ -229,7 +251,7 @@ export default function App() {
         <Route
           path="/pricing"
           element={
-            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+            <Layout {...layoutProps}>
               <Pricing />
             </Layout>
           }
@@ -237,7 +259,7 @@ export default function App() {
         <Route
           path="/checkout/success"
           element={
-            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+            <Layout {...layoutProps}>
               <CheckoutSuccess />
             </Layout>
           }
@@ -245,7 +267,7 @@ export default function App() {
         <Route
           path="/checkout/cancel"
           element={
-            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+            <Layout {...layoutProps}>
               <CheckoutCancel />
             </Layout>
           }
@@ -253,7 +275,7 @@ export default function App() {
         <Route
           path="/review/:businessId"
           element={
-            <Layout isAuthenticated={isAuthenticated} onLogout={handleLogout}>
+            <Layout {...layoutProps}>
               <AddReview />
             </Layout>
           }
