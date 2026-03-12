@@ -25,6 +25,10 @@ router.post('/checkout', auth, async (req, res) => {
 
     const user = await User.findById(req.user._id);
 
+    if (!user.businessId) {
+      return res.status(403).json({ error: 'Only business owners can subscribe to a plan. Please set up your business listing first.' });
+    }
+
     // Create or retrieve Stripe customer
     let customerId = user.subscription?.stripeCustomerId;
     if (!customerId) {

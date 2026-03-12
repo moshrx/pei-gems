@@ -59,6 +59,7 @@ const businessSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  googlePlaceId: String,
   createdAt: {
     type: Date,
     default: Date.now,

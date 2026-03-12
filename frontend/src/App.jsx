@@ -80,22 +80,7 @@ function Layout({ children, isAuthenticated, onLogout }) {
                   Logout
                 </button>
               </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/signup"
-                  className="text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
+            ) : null}
             <ThemeToggle />
           </div>
         </div>
@@ -136,6 +121,14 @@ function Layout({ children, isAuthenticated, onLogout }) {
               <div className="space-y-2">
                 <a href="https://peigems.ca" className="block text-sm text-neutral-500 hover:text-white transition-colors">About</a>
                 <a href="mailto:hello@peigems.ca" className="block text-sm text-neutral-500 hover:text-white transition-colors">Contact</a>
+              </div>
+              <div className="mt-4 pt-4 border-t border-neutral-800">
+                <p className="text-xs text-neutral-500 mb-2">Are you a business owner?</p>
+                <div className="flex gap-3 items-center">
+                  <Link to="/login" className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">Login</Link>
+                  <span className="text-neutral-700">/</span>
+                  <Link to="/signup" className="text-sm text-red-400 hover:text-red-300 font-medium transition-colors">Sign up</Link>
+                </div>
               </div>
             </div>
           </div>

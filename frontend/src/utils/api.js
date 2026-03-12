@@ -149,3 +149,7 @@ export async function fetchSubscription() {
 export async function cancelSubscription() {
   return apiRequest('/api/billing/subscription', { method: 'DELETE' })
 }
+
+export async function importGoogleReviews(businessId) {
+  return apiRequest(`/api/businesses/${businessId}/import-reviews`, { method: 'POST' })
+}

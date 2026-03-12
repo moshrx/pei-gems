@@ -13,9 +13,15 @@ const reviewSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: false,
     lowercase: true,
   },
+  source: {
+    type: String,
+    enum: ['direct', 'google'],
+    default: 'direct',
+  },
+  googleAuthorPhotoUrl: String,
   rating: {
     type: Number,
     required: true,

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { createCheckoutSession } from '../utils/api'
+import { createCheckoutSession, fetchMyBusiness } from '../utils/api'
 import { getToken } from '../utils/auth'
 
 const TIERS = [
@@ -89,6 +89,14 @@ export default function Pricing() {
 
     if (!getToken()) {
       navigate('/login')
+      return
+    }
+
+    // Check that the user has a business before checkout
+    try {
+      await fetchMyBusiness()
+    } catch {
+      navigate('/dashboard/create-business')
       return
     }
 

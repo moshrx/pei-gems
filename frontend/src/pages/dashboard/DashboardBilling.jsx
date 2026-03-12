@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { cancelSubscription, createCheckoutSession, fetchSubscription } from '../../utils/api'
+import { cancelSubscription, createCheckoutSession, fetchMyBusiness, fetchSubscription } from '../../utils/api'
 
 const PLAN_LABELS = {
   free: 'Free',
@@ -21,6 +21,7 @@ function formatDate(dateStr) {
 
 export default function DashboardBilling() {
   const [sub, setSub] = useState(null)
+  const [hasBusiness, setHasBusiness] = useState(null) // null = loading
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -29,10 +30,15 @@ export default function DashboardBilling() {
   const [upgrading, setUpgrading] = useState('')
 
   useEffect(() => {
-    fetchSubscription()
-      .then(setSub)
-      .catch((err) => setError(err.message || 'Failed to load subscription.'))
-      .finally(() => setLoading(false))
+    Promise.all([
+      fetchSubscription().catch(() => null),
+      fetchMyBusiness().then(() => true).catch(() => false),
+    ]).then(([subData, bizExists]) => {
+      setSub(subData)
+      setHasBusiness(bizExists)
+    }).catch((err) => {
+      setError(err.message || 'Failed to load billing info.')
+    }).finally(() => setLoading(false))
   }, [])
 
   const handleCancel = async () => {
@@ -73,6 +79,35 @@ export default function DashboardBilling() {
 
   const plan = sub?.plan || 'free'
   const isPaid = plan === 'basic' || plan === 'pro'
+
+  // No business — show prompt to create one first
+  if (!loading && hasBusiness === false) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-gray-900 dark:text-white">Billing</h1>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Manage your subscription plan</p>
+        </div>
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-neutral-800 p-8 shadow-xl shadow-black/5 dark:shadow-black/20 text-center">
+          <div className="w-12 h-12 bg-amber-50 dark:bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-display font-semibold text-gray-900 dark:text-white mb-2">Set up your business first</h2>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mb-6 max-w-sm mx-auto">
+            You need to create a business listing before you can manage a subscription plan.
+          </p>
+          <Link
+            to="/dashboard/create-business"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition-colors"
+          >
+            Create Business Listing →
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">

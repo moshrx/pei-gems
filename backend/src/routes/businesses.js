@@ -1,7 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const Business = require('../models/Business');
+const Review = require('../models/Review');
 const auth = require('../middleware/auth');
+
+// Helper: HTTPS GET returning parsed JSON
+function httpsGet(url) {
+  return new Promise((resolve, reject) => {
+    require('https').get(url, (res) => {
+      let d = '';
+      res.on('data', (c) => { d += c; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(d)); } catch (e) { reject(e); }
+      });
+    }).on('error', reject);
+  });
+}
 
 const MAX_PHOTOS = 10;
 
@@ -243,6 +257,73 @@ router.put('/:id/photos/reorder', auth, async (req, res) => {
     return res.json(business);
   } catch (err) {
     return res.status(400).json({ error: err.message });
+  }
+});
+
+// POST import reviews from Google Places (protected - owner only)
+router.post('/:id/import-reviews', auth, async (req, res) => {
+  try {
+    const business = await getOwnedBusinessOrForbidden(req, res);
+    if (!business) return;
+
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'Google Places API key not configured.' });
+    }
+
+    // Step 1: Look up Place ID if we don't have it yet
+    if (!business.googlePlaceId) {
+      const query = encodeURIComponent(`${business.name} ${business.location} Prince Edward Island`);
+      const searchUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${query}&key=${apiKey}`;
+      const searchResult = await httpsGet(searchUrl);
+
+      if (!searchResult.results || searchResult.results.length === 0) {
+        return res.status(404).json({ error: 'Could not find this business on Google Maps. Try adding a Google Place ID manually.' });
+      }
+
+      business.googlePlaceId = searchResult.results[0].place_id;
+      await business.save();
+    }
+
+    // Step 2: Fetch reviews from Place Details
+    const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${business.googlePlaceId}&fields=reviews&key=${apiKey}`;
+    const detailsResult = await httpsGet(detailsUrl);
+
+    const googleReviews = detailsResult.result?.reviews || [];
+
+    // Step 3: Import up to 5 reviews, deduplicating
+    let imported = 0;
+    for (const gr of googleReviews.slice(0, 5)) {
+      const exists = await Review.findOne({
+        businessId: business._id,
+        source: 'google',
+        author: gr.author_name,
+        rating: gr.rating,
+      });
+
+      if (!exists) {
+        await Review.create({
+          businessId: business._id,
+          author: gr.author_name,
+          email: 'noreply@google.com',
+          rating: gr.rating,
+          text: gr.text || '(No review text)',
+          source: 'google',
+          googleAuthorPhotoUrl: gr.profile_photo_url || null,
+          createdAt: gr.time ? new Date(gr.time * 1000) : new Date(),
+        });
+        imported++;
+      }
+    }
+
+    // Step 4: Recalculate rating if any were imported
+    if (imported > 0) {
+      await business.updateRating();
+    }
+
+    res.json({ imported, total: googleReviews.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
