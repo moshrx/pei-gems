@@ -59,6 +59,10 @@ const businessSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  planWeight: {
+    type: Number,
+    default: 0,
+  },
   googlePlaceId: String,
   createdAt: {
     type: Date,

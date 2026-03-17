@@ -4,6 +4,7 @@ import {
   deleteBusinessPhoto,
   fetchMyBusiness,
   reorderBusinessPhotos,
+  fetchSubscription,
 } from '../../utils/api'
 
 const MAX_PHOTOS = 10
@@ -44,6 +45,7 @@ export default function DashboardPhotos() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [photoLimit, setPhotoLimit] = useState(MAX_PHOTOS)
 
   const [photos, setPhotos] = useState([])
   const [uploading, setUploading] = useState(false)
@@ -62,9 +64,11 @@ export default function DashboardPhotos() {
   useEffect(() => {
     const load = async () => {
       try {
-        const biz = await fetchMyBusiness()
+        const [biz, sub] = await Promise.all([fetchMyBusiness(), fetchSubscription()])
         setBusiness(biz)
         setPhotos(biz.photos || [])
+        const plan = sub?.plan || 'free'
+        setPhotoLimit(plan === 'free' ? 3 : MAX_PHOTOS)
       } catch (err) {
         setError(err.message || 'Failed to load business data.')
       } finally {
@@ -85,8 +89,8 @@ export default function DashboardPhotos() {
     setMessage('')
 
     if (!business) return
-    if (photos.length >= MAX_PHOTOS) {
-      setError(`You can upload up to ${MAX_PHOTOS} photos only.`)
+    if (photos.length >= photoLimit) {
+      setError(`You can upload up to ${photoLimit} photos only.`)
       return
     }
 
@@ -233,14 +237,14 @@ export default function DashboardPhotos() {
         <div>
           <h1 className="text-2xl font-display font-bold text-gray-900 dark:text-white">Photos</h1>
           <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-            Manage your gallery ({photos.length}/{MAX_PHOTOS})
+            Manage your gallery ({photos.length}/{photoLimit})
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={openUploadWidget}
-            disabled={uploading || photos.length >= MAX_PHOTOS}
+            disabled={uploading || photos.length >= photoLimit}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
           >
             {uploading ? (
@@ -361,7 +365,7 @@ export default function DashboardPhotos() {
       )}
 
       <p className="text-xs text-gray-500 dark:text-neutral-500">
-        Allowed formats: JPG, PNG, WEBP. Maximum size: 5MB per image. Maximum {MAX_PHOTOS} photos.
+        Allowed formats: JPG, PNG, WEBP. Maximum size: 5MB per image. Maximum {photoLimit} photos.
       </p>
     </div>
   )

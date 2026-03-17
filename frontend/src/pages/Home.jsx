@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import SearchBar from '../components/SearchBar'
 import BusinessCard from '../components/BusinessCard'
 import { fetchBusinesses } from '../utils/api'
@@ -15,6 +16,7 @@ export default function Home() {
   const [businesses, setBusinesses] = useState([])
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
+  const location = useLocation()
 
   const handleSearch = async (params) => {
     setLoading(true)
@@ -34,8 +36,10 @@ export default function Home() {
   }
 
   useEffect(() => {
-    handleSearch({})
-  }, [])
+    const params = new URLSearchParams(location.search)
+    const category = params.get('category')
+    handleSearch(category ? { category } : {})
+  }, [location.search])
 
   return (
     <>

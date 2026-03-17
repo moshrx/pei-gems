@@ -153,13 +153,13 @@ export default function DashboardReviews() {
 
               {/* Business response */}
               {review.businessResponse?.text ? (
-                <div className="mt-4 ml-13 pl-4 border-l-2 border-red-200 dark:border-red-500/30">
+                <div className="mt-4 ml-12 pl-4 border-l-2 border-red-200 dark:border-red-500/30">
                   <p className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">Your Response</p>
                   <p className="text-sm text-gray-600 dark:text-neutral-300">{review.businessResponse.text}</p>
                   <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">{new Date(review.businessResponse.date).toLocaleDateString()}</p>
                 </div>
               ) : respondingTo === review._id ? (
-                <div className="mt-4 ml-13 space-y-3">
+                <div className="mt-4 ml-12 space-y-3">
                   <textarea
                     rows={3}
                     value={responseText}
@@ -185,7 +185,7 @@ export default function DashboardReviews() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-3 ml-13">
+                <div className="mt-3 ml-12">
                   <button
                     onClick={() => setRespondingTo(review._id)}
                     className="text-sm text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium transition-colors"

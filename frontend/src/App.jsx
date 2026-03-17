@@ -114,9 +114,9 @@ function Layout({ children, isAuthenticated, isBusinessOwner, onLogout }) {
             <div>
               <h4 className="text-sm font-semibold text-neutral-300 uppercase tracking-wider mb-3">Explore</h4>
               <div className="space-y-2">
-                <Link to="/" className="block text-sm text-neutral-500 hover:text-white transition-colors">Restaurants</Link>
-                <Link to="/" className="block text-sm text-neutral-500 hover:text-white transition-colors">Retail</Link>
-                <Link to="/" className="block text-sm text-neutral-500 hover:text-white transition-colors">Tourism</Link>
+                <Link to="/?category=restaurant" className="block text-sm text-neutral-500 hover:text-white transition-colors">Restaurants</Link>
+                <Link to="/?category=retail" className="block text-sm text-neutral-500 hover:text-white transition-colors">Retail</Link>
+                <Link to="/?category=tourism" className="block text-sm text-neutral-500 hover:text-white transition-colors">Tourism</Link>
               </div>
             </div>
             <div>

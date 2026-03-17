@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Business = require('../models/Business');
 const Review = require('../models/Review');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 // Helper: HTTPS GET returning parsed JSON
@@ -51,7 +52,7 @@ router.get('/', async (req, res) => {
     }
 
     const businesses = await Business.find(filter)
-      .sort({ avgRating: -1, createdAt: -1 })
+      .sort({ planWeight: -1, avgRating: -1, createdAt: -1 })
       .limit(50);
 
     res.json(businesses);
@@ -113,8 +114,6 @@ router.post('/', async (req, res) => {
 // POST create business for current owner (protected)
 router.post('/mine', auth, async (req, res) => {
   try {
-    const User = require('../models/User');
-
     // Check if user already has a business
     const existing = await Business.findOne({ owner: req.user._id });
     if (existing) {
@@ -187,8 +186,15 @@ router.post('/:id/photos', auth, async (req, res) => {
     const business = await getOwnedBusinessOrForbidden(req, res);
     if (!business) return;
 
-    if (business.photos.length >= MAX_PHOTOS) {
-      return res.status(400).json({ error: `Maximum ${MAX_PHOTOS} photos allowed per business.` });
+    const owner = await User.findById(req.user._id).select('subscription');
+    const plan = owner?.subscription?.plan || 'free';
+    const photoLimit = plan === 'free' ? 3 : MAX_PHOTOS;
+
+    if (business.photos.length >= photoLimit) {
+      const limitMsg = plan === 'free'
+        ? `Free plan allows up to 3 photos. Upgrade to upload more.`
+        : `Maximum ${MAX_PHOTOS} photos allowed per business.`;
+      return res.status(400).json({ error: limitMsg });
     }
 
     if (business.photos.includes(imageUrl)) {

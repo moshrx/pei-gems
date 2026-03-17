@@ -3,6 +3,7 @@ const router = express.Router();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const auth = require('../middleware/auth');
 const User = require('../models/User');
+const Business = require('../models/Business');
 
 const PLAN_PRICE_MAP = {
   basic: process.env.STRIPE_BASIC_PRICE_ID,
@@ -124,6 +125,11 @@ async function webhookHandler(req, res) {
             'subscription.stripeSubscriptionId': session.subscription,
             'subscription.currentPeriodEnd': new Date(subscription.current_period_end * 1000),
           });
+          const planWeight = plan === 'pro' ? 2 : 1;
+          await Business.findOneAndUpdate(
+            { owner: userId },
+            { isVerified: true, planWeight }
+          );
         }
         break;
       }
@@ -140,7 +146,7 @@ async function webhookHandler(req, res) {
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
-        await User.findOneAndUpdate(
+        const cancelledUser = await User.findOneAndUpdate(
           { 'subscription.stripeSubscriptionId': subscription.id },
           {
             'subscription.plan': 'free',
@@ -148,6 +154,12 @@ async function webhookHandler(req, res) {
             'subscription.currentPeriodEnd': null,
           }
         );
+        if (cancelledUser) {
+          await Business.findOneAndUpdate(
+            { owner: cancelledUser._id },
+            { isVerified: false, planWeight: 0 }
+          );
+        }
         break;
       }
 
